@@ -1,0 +1,96 @@
+1.创建索引
+curl -XPUT 'localhost:9200/product?pretty' -H 'Content-Type: application/json' -d'
+{
+    "settings" : {
+        "index" : {
+            "number_of_shards" : 3, 
+            "number_of_replicas" : 2 
+        }
+    }
+}
+'
+
+
+
+
+
+
+2.创建type
+curl -XPOST http://localhost:9200/product/_mapping/product_plan?pretty -d'
+{
+        "properties": {
+            "id": {
+                "type": "keyword"
+            },
+			"name": {
+                "type": "text",
+				"analyzer": "ik_max_word"
+            },
+			"desc": {
+                "type": "text",
+				"analyzer": "ik_max_word",
+				"store": false
+            },
+			 "price": {
+                "type": "float"
+            },
+			"categorys": {
+			    "type": "nested",
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"name": {
+						"type": "text",
+						"analyzer": "ik_max_word"
+					},
+					"productPlanId": {
+						"type": "keyword"
+					},
+					"parentId": {
+						"type": "keyword"
+					}
+				}
+			},
+			"productName": {
+                "type": "text",
+				"analyzer": "ik_max_word"
+            },
+			 "productId": {
+                "type": "keyword"
+            }
+        }
+    
+}'
+
+3.创建document
+curl -XPOST http://localhost:9200/product/product_plan/1?pretty -d'
+{
+   "id" : "1",
+   "name" : "儿童保险计划",
+   "desc" : "儿童专业产品保险计划",
+   "price" : 200,
+   "categorys" : {
+      "id" : "10",
+	  "name" : "儿童保险",
+	  "productPlanId" : "1",
+	  "parentId" : "1"
+   },
+   "productName" : "保险产品",
+   "productId" : "1"
+}
+'
+
+4.查询
+curl -XPOST http://localhost:9200/product/product_plan/_search?pretty  -d'
+{
+    "query" : { "match" : { "name" : "儿童" }},
+    "highlight" : {
+        "pre_tags" : ["<tag1>", "<tag2>"],
+        "post_tags" : ["</tag1>", "</tag2>"],
+        "fields" : {
+            "name" : {}
+        }
+    }
+}
+'
